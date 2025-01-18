@@ -1,7 +1,7 @@
-import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
 import 'package:acc_hack/app/router/router.gr.dart';
 import 'package:acc_hack/presentation/theme/theme_helpers.dart';
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
 
 @RoutePage()
 class DashboardPage extends StatelessWidget {
@@ -12,7 +12,6 @@ class DashboardPage extends StatelessWidget {
     return AutoTabsScaffold(
       routes: const [
         HomeRoute(),
-        GoogleMapRoute(),
         MyWaysRoute(),
       ],
       bottomNavigationBuilder: (_, tabsRouter) {

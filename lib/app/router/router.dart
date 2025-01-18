@@ -1,5 +1,5 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:acc_hack/app/router/router.gr.dart';
+import 'package:auto_route/auto_route.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
@@ -12,10 +12,8 @@ class AppRouter extends RootStackRouter {
           page: DashboardRoute.page,
           children: [
             AutoRoute(
-              page: GoogleMapRoute.page,
-            ),
-            AutoRoute(
               page: HomeRoute.page,
+              initial: true,
             ),
             AutoRoute(
               page: MyWaysRoute.page,
