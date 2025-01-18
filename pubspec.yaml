@@ -4,7 +4,7 @@ publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
+  sdk: ^3.3.0
 
 dependencies:
   flutter:
@@ -27,8 +27,6 @@ dependencies:
 
   # UI
   gap: ^3.0.1
-  cached_network_image: ^3.4.0
-  flutter_typeahead: ^5.2.0
   easy_rich_text: ^2.2.0
 
   # Navigation
@@ -37,9 +35,6 @@ dependencies:
   # Network
   retrofit: ^4.4.1
   dio: ^5.7.0
-
-  # MAPS
-  google_maps_flutter: ^2.6.0
 
   # ENV
   flutter_dotenv: ^5.1.0
