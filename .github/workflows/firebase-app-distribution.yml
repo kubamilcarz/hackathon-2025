@@ -1,0 +1,112 @@
+name: Deploy to Firebase App Distribution
+on:
+  push:
+    branches:
+      - main
+permissions:
+  checks: write
+  contents: read
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: "temurin"
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          flutter-version: 3.24.3
+
+      - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
+      - name: Decode key.properties
+        env:
+          KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
+        run: echo "$KEY_PROPERTIES" > android/key.properties
+
+      - name: Decode upload-keystore.jks
+        env:
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          cd android/app
+          echo "$UPLOAD_KEYSTORE_BASE64" | base64 --decode > upload-keystore.jks
+
+      - name: 📦 Install Dependencies
+        run: |
+          flutter pub get
+
+      - name: 🍈 Run Melos - Build packages
+        run: |
+          flutter pub global activate melos
+          melos bootstrap
+          melos run builder
+
+      - name: 🛠️ Build the APK
+        run: flutter build apk --flavor production -t lib/main_production.dart
+
+      - name: 🌐 Build the web app
+        run: flutter build web -t lib/main_production.dart
+
+      - name: ⬇️ Archive Web APP Production Artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: build_web
+          path: build/web
+
+      - name: ⬇️ Archive Mobile APP Production Artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: build_apk
+          path: build/app/outputs/flutter-apk/app-production-release.apk
+
+  deploy-apk:
+    name: "Deploy APK"
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 📚 Checkout repo
+        uses: actions/checkout@v4
+      - name: ⬇️ Download Artifact
+        uses: actions/download-artifact@master
+        with:
+          name: build_apk
+          path: build/app/outputs/flutter-apk
+
+      - name: 🎯 Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: testers
+          file: build/app/outputs/flutter-apk/app-production-release.apk
+
+  deploy-web:
+    name: "Deploy Web"
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 📚 Checkout repo
+        uses: actions/checkout@v4
+      - name: ⬇️ Download Artifact
+        uses: actions/download-artifact@master
+        with:
+          name: build_web
+          path: build/web
+
+      - name: 🎯 Deploy to firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_acc_hack }}"
+          projectId: acc-hack
+          channelId: live
